@@ -2,7 +2,9 @@ import React, {useState, useEffect} from 'react'
 import Web3 from 'web3'
 import styled from 'styled-components'
 import Color from '../abi/Color'
-import NavBar from './NavBar' 
+
+import NavBar from './NavBar'
+import Colors from './Colors'
 
 const Row = styled.div`
     background-color: blue;
@@ -32,6 +34,8 @@ const Circle = styled.div`
 `;
 
 //forms
+//
+//
 
 const FormDiv = styled.div`
     display: flex;
@@ -67,23 +71,30 @@ export default function Main() {
     const [addColor, setAddColor] = useState(true)
     const [newColor, setNewColor] = useState('')
 
+    
+    //
+    //init effects
+    //
     useEffect(() => {
         const loadAccount = async() => {
-            setAccount(await web3.eth.getAccounts())
+            let acct = await web3.eth.getAccounts()
+            setAccount(acct.toString())
         }
-        loadAccount()
-    }, [account])
-
-
-    useEffect(() => {
+        
         const loadSupply = async() => {
-            setTotalSupply(await contract.methods.totalSupply().call())
+            let supply = await contract.methods.totalSupply().call()
+            setTotalSupply(supply)
             console.log(totalSupply)
         }
+
+        loadAccount()
         loadSupply()
-    }, [totalSupply])
+    }, [account, totalSupply])
+
     
-    
+    //
+    //load colors
+    //
     useEffect(() => {
         const loadColors = async() => {
             for(var i = 1; i <= totalSupply; i++){
@@ -98,25 +109,23 @@ export default function Main() {
     }, [totalSupply, addColor])
 
 
-    //mint function
-
+    //
+    //mint function and event handler
+    //
     const handleInput = (event) => {
         setNewColor(event.target.value)
     }
 
-
-    const mintToken = async() => {
+    const mintToken1 = async() => {
         let config = {
-            from: account[0]
+            from: account
         }
-        contract.methods.mint(newColor).send(config)
-            .on(receipt => {
+        await contract.methods.mint(newColor).send(config)
+            .then(function(receipt) {
                 console.log(receipt)
                 setAddColor(true)
-        })
-    }
-    
-    
+            })
+        }
 
     return (
         <div>
@@ -142,7 +151,7 @@ export default function Main() {
                         />
                     <div>
                         <Button 
-                        onClick={mintToken}
+                        onClick={mintToken1}
                         >
                             Mint
                         </Button>
